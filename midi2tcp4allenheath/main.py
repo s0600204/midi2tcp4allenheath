@@ -33,13 +33,19 @@ def main():
         required=True,
         help="IP (v4) Address of Target Device",
     )
+    parser.add_argument(
+        "-w",
+        "--no-wait",
+        action='store_true',
+        help="Don't wait for a connection to a remote device to create MIDI ports locally.",
+    )
     args = parser.parse_args()
 
     # @todo: validate this
     ip_address = args.address
 
     # Initialise server
-    server = MidiTcpServer(ip_address)
+    server = MidiTcpServer(ip_address, nowait_midi=args.no_wait)
 
     # Gracefully handle SIGTERM and SIGINT
     def handle_quit_signal(*_):

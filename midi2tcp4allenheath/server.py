@@ -23,17 +23,17 @@ class MidiTcpServer(Thread):
     POLL = 0.5 # seconds
     TIMEOUT = 5 # seconds
 
-    def __init__(self, ip_address):
+    def __init__(self, ip_address, nowait_midi=False):
         Thread.__init__(self, daemon=False)
 
         self._socket = None
         self._status = ConnectionStatus.Disconnected
 
-        self._midi_in_port = mido.open_input(
-            name="MIDI to AllenHeath Desk", virtual=True, client_name=self.MIDI_CLIENT_NAME, callback=self.send)
-        self._midi_out_port = mido.open_output(
-            name="MIDI from AllenHeath Desk", virtual=True, client_name=self.MIDI_CLIENT_NAME)
+        self._midi_in_port = None
+        self._midi_out_port = None
         self._midi_parser = mido.tokenizer.Tokenizer()
+        if nowait_midi:
+            self._start_midi()
 
         self._ip_addr = ip_address
         self._request_restart = False
@@ -70,6 +70,7 @@ class MidiTcpServer(Thread):
                         try:
                             self._socket.connect((self._ip_addr, self.PORT))
                             self._update_status(ConnectionStatus.Connected)
+                            self._start_midi()
                         except OSError as error:
                             if error.errno not in [10060, 10065]:
                                 LOGGER.error(error)
@@ -106,14 +107,31 @@ class MidiTcpServer(Thread):
         LOGGER.info("Shutting down...")
         self._request_shutdown = True
         self.join()
-        self._midi_in_port.close()
-        self._midi_out_port.close()
+        if self._midi_in_port:
+            self._midi_in_port.close()
+        if self._midi_out_port:
+            self._midi_out_port.close()
 
     def send(self, message):
         if self._socket:
             self._socket.sendall(message.bin())
         else:
             raise ConnectionError
+
+    def _start_midi(self):
+        if not self._midi_in_port:
+            self._midi_in_port = mido.open_input(
+                name="MIDI to AllenHeath Desk",
+                virtual=True,
+                client_name=self.MIDI_CLIENT_NAME,
+                callback=self.send
+            )
+        if not self._midi_out_port:
+            self._midi_out_port = mido.open_output(
+                name="MIDI from AllenHeath Desk",
+                virtual=True,
+                client_name=self.MIDI_CLIENT_NAME
+            )
 
     def _update_status(self, new_status: ConnectionStatus):
         self._status = new_status

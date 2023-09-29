@@ -4,6 +4,7 @@ import logging
 import signal
 import sys
 
+from .discovery import Discovery
 from .server import MidiTcpServer
 
 
@@ -44,11 +45,16 @@ def main():
     # @todo: validate this
     ip_address = args.address
 
+    # Start Discovery
+    discovery = Discovery()
+    discovery.start()
+
     # Initialise server
     server = MidiTcpServer(ip_address, nowait_midi=args.no_wait)
 
     # Gracefully handle SIGTERM and SIGINT
     def handle_quit_signal(*_):
+        discovery.stop()
         server.stop()
 
     signal.signal(signal.SIGTERM, handle_quit_signal)

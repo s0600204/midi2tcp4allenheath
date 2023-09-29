@@ -57,7 +57,6 @@ class MidiTcpServer(Thread):
                 self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 selector.register(self._socket, selectors.EVENT_READ)
 
-                prev = b''
                 timeout = 0
                 while not self._request_restart and not self._request_shutdown:
                     ready = selector.select(self.POLL)
@@ -81,7 +80,7 @@ class MidiTcpServer(Thread):
                     if ready:
                         timeout = 0
                         try:
-                            recv = prev + self._socket.recv(1024)
+                            recv = self._socket.recv(1024)
                         except ConnectionResetError:
                             LOGGER.info(f"Connection to {self._ip_addr} reset")
                             self._request_restart = True

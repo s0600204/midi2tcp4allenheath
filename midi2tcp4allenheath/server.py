@@ -19,6 +19,7 @@ class ConnectionStatus(enum.Enum):
 class MidiTcpServer(Thread):
 
     MIDI_CLIENT_NAME = "MIDI-TCP for Allen & Heath"
+    MIDI_PORT_NAME = "Allen & Heath Desk"
     PORT = 51325
     POLL = 0.5 # seconds
     TIMEOUT = 5 # seconds
@@ -121,14 +122,14 @@ class MidiTcpServer(Thread):
     def _start_midi(self):
         if not self._midi_in_port:
             self._midi_in_port = mido.open_input(
-                name="MIDI to AllenHeath Desk",
+                name=self.MIDI_PORT_NAME,
                 virtual=True,
                 client_name=self.MIDI_CLIENT_NAME,
                 callback=self.send
             )
         if not self._midi_out_port:
             self._midi_out_port = mido.open_output(
-                name="MIDI from AllenHeath Desk",
+                name=self.MIDI_PORT_NAME,
                 virtual=True,
                 client_name=self.MIDI_CLIENT_NAME
             )

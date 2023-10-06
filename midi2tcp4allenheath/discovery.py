@@ -3,7 +3,7 @@ import logging
 import selectors
 import socket
 import sys
-from threading import Thread
+from threading import Lock, Thread
 
 
 LOGGER = logging.getLogger(__name__)
@@ -15,6 +15,7 @@ class Discovery(Thread):
     MSG = bytes("GLD Find\0V2\n", "utf-8")
     POLL = 0.5 # seconds
     RETRANSMIT_INTERVAL = 10 # seconds
+    TIMEOUT = 15 # seconds, should be greater than RETRANSMIT_INTERVAL
 
     def __init__(self):
         Thread.__init__(self, daemon=True)
@@ -22,6 +23,15 @@ class Discovery(Thread):
         self._socket = None
         self._request_shutdown = False
         self._request_retransmit = False
+
+        self._storage_mutex = Lock()
+        self._storage = {}
+
+    def name_for_ipv4(self, ipv4):
+        with self._storage_mutex:
+            if ipv4 not in self._storage:
+                return None
+            return self._storage[ipv4]['name']
 
     def run(self):
         with selectors.DefaultSelector() as selector:
@@ -44,11 +54,24 @@ class Discovery(Thread):
                         break
 
                     if ready:
-                        received = self._socket.recvfrom(1024)
+                        received, address = self._socket.recvfrom(1024)
                         LOGGER.info(f"Received: {received}")
+
+                        with self._storage_mutex:
+                            if address[0] not in self._storage:
+                                self._storage[address[0]] = {
+                                    'name': str(received[:-1], 'UTF-8'),
+                                }
+                            self._storage[address[0]]['timeout'] = 0
 
                     else:
                         timeout += self.POLL
+                        with self._storage_mutex:
+                            for ipv4, context in self._storage.items():
+                                if context['timeout'] >= self.TIMEOUT:
+                                    del self._storage[ipv4]
+                                else:
+                                    context['timeout'] += self.POLL
                         if timeout >= self.RETRANSMIT_INTERVAL:
                             self._request_retransmit = True
 

@@ -35,10 +35,16 @@ def main():
         help="IP (v4) Address of Target Device",
     )
     parser.add_argument(
+        "-n",
+        "--no-name",
+        action='store_true',
+        help="Don't name the local MIDI ports with the name of the attached desk.",
+    )
+    parser.add_argument(
         "-w",
         "--no-wait",
         action='store_true',
-        help="Don't wait for a connection to a remote device to create MIDI ports locally.",
+        help="Don't wait for a connection to a remote device to create MIDI ports locally. Implies no-name.",
     )
     args = parser.parse_args()
 
@@ -50,7 +56,7 @@ def main():
     discovery.start()
 
     # Initialise server
-    server = MidiTcpServer(ip_address, nowait_midi=args.no_wait)
+    server = MidiTcpServer(ip_address, nowait_midi=args.no_wait, noname_midi=args.no_name, discovery=discovery)
 
     # Gracefully handle SIGTERM and SIGINT
     def handle_quit_signal(*_):

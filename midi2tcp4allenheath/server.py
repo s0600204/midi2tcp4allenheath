@@ -4,6 +4,7 @@ import logging
 import selectors
 import socket
 from threading import Thread
+from time import sleep
 
 import mido
 
@@ -23,6 +24,8 @@ class MidiTcpServer(Thread):
     PORT = 51325
     POLL = 0.5 # seconds
     TIMEOUT = 5 # seconds
+    NAME_ATTEMPTS = 3 # How many attempts to get the name via discovery
+    NAME_POLL = 1 # seconds, how long between attempts
 
     def __init__(self, ip_address, nowait_midi=False, noname_midi=False, discovery=None):
         Thread.__init__(self, daemon=False)
@@ -127,14 +130,16 @@ class MidiTcpServer(Thread):
             raise ConnectionError
 
     def _start_midi(self, noname=False):
-        if noname:
+        name = None
+        if not noname:
+            for attempt in range(self.NAME_ATTEMPTS):
+                sleep(self.NAME_POLL)
+                name = self._discovery.name_for_ipv4(self._ip_addr)
+                if name:
+                    name = f"{self.MIDI_PORT_NAME} '{name}'"
+                    break
+        if not name:
             name = self.MIDI_PORT_NAME
-        else:
-            name = self._discovery.name_for_ipv4(self._ip_addr)
-            if not name:
-                self._request_restart = True
-                return
-            name = f"{self.MIDI_PORT_NAME} '{name}'"
 
         if not self._midi_in_port:
             self._midi_in_port = mido.open_input(

@@ -33,6 +33,16 @@ class Discovery(Thread):
                 return None
             return self._storage[ipv4]['name']
 
+    def print_discovered(self):
+        with self._storage_mutex:
+            if not self._storage:
+                print("No devices discovered.")
+                return
+
+            print("Devices discoved on network:")
+            for address, details in self._storage:
+                print(f"> {address} -- {details['name']}")
+
     def run(self):
         with selectors.DefaultSelector() as selector:
 

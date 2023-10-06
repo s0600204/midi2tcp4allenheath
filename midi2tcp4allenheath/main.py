@@ -3,6 +3,7 @@ import argparse
 import logging
 import signal
 import sys
+from time import sleep
 
 from .discovery import Discovery
 from .server import MidiTcpServer
@@ -31,7 +32,6 @@ def main():
     parser.add_argument(
         "-a",
         "--address",
-        required=True,
         help="IP (v4) Address of Target Device",
     )
     parser.add_argument(
@@ -56,7 +56,8 @@ def main():
     discovery.start()
 
     # Initialise server
-    server = MidiTcpServer(ip_address, nowait_midi=args.no_wait, noname_midi=args.no_name, discovery=discovery)
+    if ip_address:
+        server = MidiTcpServer(ip_address, nowait_midi=args.no_wait, noname_midi=args.no_name, discovery=discovery)
 
     # Gracefully handle SIGTERM and SIGINT
     def handle_quit_signal(*_):
@@ -67,7 +68,12 @@ def main():
     signal.signal(signal.SIGINT, handle_quit_signal)
 
     # Run the application
-    server.start()
+    if ip_address:
+        server.start()
+    else:
+        print("Searching network, please wait...")
+        sleep(2)
+        discovery.print_discovered()
 
 
 if __name__ == "__main__":

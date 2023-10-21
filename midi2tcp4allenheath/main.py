@@ -5,6 +5,7 @@ import signal
 import sys
 from time import sleep
 
+from . import __doc__ as DESCRIPTION
 from .discovery import Discovery
 from .server import MidiTcpServer
 
@@ -27,7 +28,7 @@ def main():
 
     # Read the arguments passed
     parser = argparse.ArgumentParser(
-        description="MIDI <-> TCP Server for Allen & Heath Desks"
+        description=DESCRIPTION
     )
     parser.add_argument(
         "-a",

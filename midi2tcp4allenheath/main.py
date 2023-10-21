@@ -23,7 +23,7 @@ def main():
     # Write to console stdout/stderr
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(logging_format)
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(logging.WARNING)
     root_logger.addHandler(console_handler)
 
     # Read the arguments passed

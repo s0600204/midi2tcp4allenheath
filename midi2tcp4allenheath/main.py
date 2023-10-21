@@ -8,6 +8,7 @@ from time import sleep
 from . import __doc__ as DESCRIPTION
 from .discovery import Discovery
 from .server import MidiTcpServer
+from .utils import restrict_ip, validate_ip
 
 
 def main():
@@ -25,6 +26,8 @@ def main():
     console_handler.setFormatter(logging_format)
     console_handler.setLevel(logging.WARNING)
     root_logger.addHandler(console_handler)
+
+    LOGGER = logging.getLogger(__name__)
 
     # Read the arguments passed
     parser = argparse.ArgumentParser(
@@ -49,8 +52,18 @@ def main():
     )
     args = parser.parse_args()
 
-    # @todo: validate this
-    ip_address = args.address
+    # Validate IP Address, if one provided
+    ip_address = None
+    if args.address:
+        if validate_ip(args.address):
+            if restrict_ip(args.address):
+                ip_address = args.address
+            else:
+                LOGGER.error("Please provide a valid IPv4 Address within an IETF Private Block.")
+                quit()
+        else:
+            LOGGER.error("Invalid IPv4 Address supplied. Please recheck your entry.")
+            quit()
 
     # Start Discovery
     discovery = Discovery()

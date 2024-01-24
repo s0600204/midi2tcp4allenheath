@@ -2,7 +2,6 @@
 import logging
 import selectors
 import socket
-import sys
 from threading import Lock, Thread
 
 
@@ -65,7 +64,7 @@ class Discovery(Thread):
 
                     if ready:
                         received, address = self._socket.recvfrom(1024)
-                        LOGGER.info(f"Received: {received}")
+                        LOGGER.info("Received: %s", received)
 
                         with self._storage_mutex:
                             if address[0] not in self._storage:

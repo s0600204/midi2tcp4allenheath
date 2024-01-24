@@ -27,7 +27,7 @@ def main():
     console_handler.setLevel(logging.WARNING)
     root_logger.addHandler(console_handler)
 
-    LOGGER = logging.getLogger(__name__)
+    logger = logging.getLogger(__name__)
 
     # Read the arguments passed
     parser = argparse.ArgumentParser(
@@ -59,11 +59,11 @@ def main():
             if restrict_ip(args.address):
                 ip_address = args.address
             else:
-                LOGGER.error("Please provide a valid IPv4 Address within an IETF Private Block.")
-                quit()
+                logger.error("Please provide a valid IPv4 Address within an IETF Private Block.")
+                sys.exit()
         else:
-            LOGGER.error("Invalid IPv4 Address supplied. Please recheck your entry.")
-            quit()
+            logger.error("Invalid IPv4 Address supplied. Please recheck your entry.")
+            sys.exit()
 
     # Start Discovery
     discovery = Discovery()
@@ -71,7 +71,11 @@ def main():
 
     # Initialise server
     if ip_address:
-        server = MidiTcpServer(ip_address, nowait_midi=args.no_wait, noname_midi=args.no_name, discovery=discovery)
+        server = MidiTcpServer(
+            ip_address,
+            nowait_midi=args.no_wait,
+            noname_midi=args.no_name,
+            discovery=discovery)
 
     # Gracefully handle SIGTERM and SIGINT
     def handle_quit_signal(*_):
@@ -92,4 +96,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

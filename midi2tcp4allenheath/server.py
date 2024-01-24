@@ -12,6 +12,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ConnectionStatus(enum.Enum):
+    # pylint: disable=invalid-name
     Connected = enum.auto()
     Connecting = enum.auto()
     Disconnected = enum.auto()
@@ -88,13 +89,13 @@ class MidiTcpServer(Thread):
                         try:
                             recv = self._socket.recv(1024)
                         except ConnectionResetError:
-                            LOGGER.info(f"Connection to {self._ip_addr} reset")
+                            LOGGER.info("Connection to %s reset", self._ip_addr)
                             self._request_restart = True
                             continue
 
                         if not recv:
                             # Empty string: the other side has closed the connection
-                            LOGGER.info(f"Connection to {self._ip_addr} lost")
+                            LOGGER.info("Connection to %s lost", self._ip_addr)
                             self._request_restart = True
                             continue
 
@@ -109,7 +110,9 @@ class MidiTcpServer(Thread):
                                 # Still discoverable on the network, so don't reconnect
                                 timeout = 0
                                 continue
-                            LOGGER.info(f"Not received anything for {self.TIMEOUT} seconds and device not discoverable. Attempting to reconnect.")
+                            LOGGER.info(
+                                "Not received anything for %i seconds and device not discoverable. Attempting to reconnect.",
+                                self.TIMEOUT)
                             self._request_restart = True
 
 
@@ -131,7 +134,7 @@ class MidiTcpServer(Thread):
     def _start_midi(self, noname=False):
         name = None
         if not noname:
-            for attempt in range(self.NAME_ATTEMPTS):
+            for _ in range(self.NAME_ATTEMPTS):
                 sleep(self.NAME_POLL)
                 name = self._discovery.name_for_ipv4(self._ip_addr)
                 if name:

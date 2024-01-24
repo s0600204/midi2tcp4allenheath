@@ -1,0 +1,9 @@
+[MAIN]
+ignored-modules=
+    mido,
+
+[MESSAGES CONTROL]
+disable=
+    missing-class-docstring,
+    missing-module-docstring,
+    missing-function-docstring,

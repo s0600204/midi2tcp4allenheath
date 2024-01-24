@@ -1,0 +1,21 @@
+Source: midi2tcp4allenheath
+Section: sound
+Priority: optional
+Maintainer: s0600204 <dev@s0600204>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+ pybuild-plugin-pyproject,
+ python3-all,
+ python3-mido,
+ python3-setuptools
+Standards-Version: 4.6.2
+Homepage: https://github.com/s0600204/playscript-autoscroller.git
+
+Package: midi2tcp4allenheath
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python3:Depends}
+Description: MIDI ⮂ TCP for Allen & Heath Audio Mixers
+ Console interface for sending MIDI messages to Allen & Heath's digital audio mixers over TCP.

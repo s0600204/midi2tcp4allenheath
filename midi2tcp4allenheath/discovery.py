@@ -39,7 +39,7 @@ class Discovery(Thread):
                 return
 
             print("Devices discoved on network:")
-            for address, details in self._storage:
+            for address, details in self._storage.items():
                 print(f"> {address} -- {details['name']}")
 
     def run(self):
